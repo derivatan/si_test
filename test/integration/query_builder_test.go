@@ -79,6 +79,7 @@ func TestWithWrongNumberOfResults(t *testing.T) {
 
 	assert.Nil(t, artist)
 	assert.Error(t, err)
+	assert.Equal(t, si.ResourceNotFoundError, err)
 }
 
 // Builder functions
