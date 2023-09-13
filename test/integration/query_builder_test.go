@@ -98,7 +98,9 @@ func TestSelect(t *testing.T) {
 		"MIN(name)",
 		"MAX(name)",
 	}
-	_, err := si.Query[Artist]().Select(selects, &numResults, &min, &max).Get(db)
+	_, err := si.Query[Artist]().Select(selects, func(scan func(...any)) {
+		scan(&numResults, &min, &max)
+	}).Get(db)
 
 	assert.NoError(t, err)
 	assert.Equal(t, 3, numResults)
@@ -258,24 +260,22 @@ func TestGroupBy(t *testing.T) {
 		Sum   int
 	}
 	var results []result
-	_, err := si.Query[Contact]().GroupSelect(
+	_, err := si.Query[Contact]().Select(
 		[]string{"email", "SUM(phone)"},
-		func() (any, []any) {
-			obj := result{}
-			return &obj, []any{&obj.Email, &obj.Sum}
-		}, func(a any) {
-			results = append(results, *a.(*result))
+		func(scan func(...any)) {
+			var r result
+			scan(&r.Email, &r.Sum)
+			results = append(results, r)
 		},
 	).GroupBy("email").OrderBy("email", true).Get(db)
 
 	var havingResult []result
-	_, havingErr := si.Query[Contact]().GroupSelect(
+	_, havingErr := si.Query[Contact]().Select(
 		[]string{"email", "SUM(phone)"},
-		func() (any, []any) {
-			obj := result{}
-			return &obj, []any{&obj.Email, &obj.Sum}
-		}, func(a any) {
-			havingResult = append(havingResult, *a.(*result))
+		func(scan func(...any)) {
+			var r result
+			scan(&r.Email, &r.Sum)
+			havingResult = append(havingResult, r)
 		},
 	).GroupBy("email").OrderBy("email", true).Having("SUM(phone)", ">", 210).Get(db)
 
@@ -379,7 +379,6 @@ func TestRelationWithHasOne(t *testing.T) {
 }
 
 func TestRelationWithBelongsTo(t *testing.T) {
-
 	db := DB(t)
 	name := "Dire staits"
 	albName := "Sultans of Swing"
@@ -423,4 +422,28 @@ func TestRelationWithHasMany(t *testing.T) {
 
 func TestUnload(t *testing.T) {
 	t.Skip("implement this")
+}
+
+func TestJoin(t *testing.T) {
+
+	t.Skip("joins is not fully implemented yet.")
+
+	db := DB(t)
+	ids := Seed(db, []Artist{
+		{Name: "The Ark"},
+		{Name: "The Cranberries"},
+		{Name: "Earth, Wind & Fire"},
+	})
+	Seed(db, []Album{
+		{Name: "We Are The Ark", ArtistID: ids[0]},
+		{Name: "No Need To Argue", ArtistID: ids[1]},
+		{Name: "All 'N All", ArtistID: ids[2]},
+	})
+
+	albums, err := si.Query[Album]().JoinWIP("artists", func(q *si.QueryBuilder[Album]) *si.QueryBuilder[Album] {
+		return q.Where("albums.artist_id", "=", "artists.id")
+	}).Where("artists.name", "ILIKE", "%The%").Get(db)
+
+	assert.NoError(t, err)
+	assert.Len(t, albums, 2)
 }
