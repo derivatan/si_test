@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type contact struct {
+type Contact struct {
 	si.Model
 
 	Email          string
@@ -18,72 +18,72 @@ type contact struct {
 	OnSocialMedia  bool
 	ArtistID       uuid.UUID
 
-	artist si.RelationData[artist]
+	artist si.RelationData[Artist]
 }
 
-func (c contact) GetModel() si.Model {
+func (c Contact) GetModel() si.Model {
 	return c.Model
 }
 
-func (c contact) GetTable() string {
+func (c Contact) GetTable() string {
 	return "contacts"
 }
 
-func (c contact) Artist() *si.Relation[contact, artist] {
-	return si.BelongsTo[contact, artist](c, "artist", func(c *contact) *si.RelationData[artist] {
+func (c Contact) Artist() *si.Relation[Contact, Artist] {
+	return si.BelongsTo[Contact, Artist](c, "artist", func(c *Contact) *si.RelationData[Artist] {
 		return &c.artist
 	})
 }
 
-type artist struct {
+type Artist struct {
 	si.Model
 
 	Name string
 
-	contact si.RelationData[contact]
-	albums  si.RelationData[album]
+	contact si.RelationData[Contact]
+	albums  si.RelationData[Album]
 }
 
-func (a artist) GetModel() si.Model {
+func (a Artist) GetModel() si.Model {
 	return a.Model
 }
 
-func (a artist) GetTable() string {
+func (a Artist) GetTable() string {
 	return "artists"
 }
 
-func (a artist) Contact() *si.Relation[artist, contact] {
-	return si.HasOne[artist, contact](a, "contact", func(a *artist) *si.RelationData[contact] {
+func (a Artist) Contact() *si.Relation[Artist, Contact] {
+	return si.HasOne[Artist, Contact](a, "contact", func(a *Artist) *si.RelationData[Contact] {
 		return &a.contact
 	})
 }
 
-func (a artist) Albums() *si.Relation[artist, album] {
-	return si.HasMany[artist, album](a, "albums", func(a *artist) *si.RelationData[album] {
+func (a Artist) Albums() *si.Relation[Artist, Album] {
+	return si.HasMany[Artist, Album](a, "albums", func(a *Artist) *si.RelationData[Album] {
 		return &a.albums
 	})
 }
 
-type album struct {
+type Album struct {
 	si.Model
 
 	Name     string
 	Year     int
 	ArtistID uuid.UUID
 
-	artist si.RelationData[artist]
+	artist si.RelationData[Artist]
 }
 
-func (a album) GetModel() si.Model {
+func (a Album) GetModel() si.Model {
 	return a.Model
 }
 
-func (a album) GetTable() string {
+func (a Album) GetTable() string {
 	return "albums"
 }
 
-func (a album) Artist() *si.Relation[album, artist] {
-	return si.BelongsTo[album, artist](a, "artist", func(a *album) *si.RelationData[artist] {
+func (a Album) Artist() *si.Relation[Album, Artist] {
+	return si.BelongsTo[Album, Artist](a, "artist", func(a *Album) *si.RelationData[Artist] {
 		return &a.artist
 	})
 }
