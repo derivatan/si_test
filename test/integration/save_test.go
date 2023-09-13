@@ -1,3 +1,5 @@
+//go:build integration
+
 package integration
 
 import (
@@ -9,10 +11,10 @@ import (
 
 func TestCreate(t *testing.T) {
 	db := DB(t)
-	ids := Seed(db, []artist{
+	ids := Seed(db, []Artist{
 		{Name: "Roger Waters"},
 	})
-	c := contact{
+	c := Contact{
 		Email:          "roger@waters.com",
 		Phone:          1357924680,
 		RadioFrequency: 21.789,
@@ -21,7 +23,7 @@ func TestCreate(t *testing.T) {
 		ArtistID:       ids[0],
 	}
 	err := si.Save(db, &c)
-	c2 := si.Query[contact]().MustFind(db)
+	c2 := si.Query[Contact]().MustFind(db)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, c2)
@@ -35,10 +37,10 @@ func TestCreate(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	db := DB(t)
-	ids := Seed(db, []artist{
+	ids := Seed(db, []Artist{
 		{Name: "Timbuktu"},
 	})
-	Seed(db, []contact{
+	Seed(db, []Contact{
 		{
 
 			// TODO: Nullable values
@@ -57,7 +59,7 @@ func TestUpdate(t *testing.T) {
 	radio := 73.11
 	lastCall := time.Date(1234, 5, 6, 7, 8, 9, 0, time.Local)
 	onSM := true
-	c := si.Query[contact]().MustFind(db)
+	c := si.Query[Contact]().MustFind(db)
 	c.Email = email
 	c.Phone = phone
 	c.RadioFrequency = radio
@@ -65,7 +67,7 @@ func TestUpdate(t *testing.T) {
 	c.OnSocialMedia = onSM
 	err := si.Save(db, c)
 
-	c2 := si.Query[contact]().MustFind(db)
+	c2 := si.Query[Contact]().MustFind(db)
 
 	assert.NoError(t, err)
 	assert.Equal(t, email, c2.Email)
