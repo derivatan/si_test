@@ -169,7 +169,7 @@ func TestWhereF(t *testing.T) {
 	})
 
 	// WHERE a AND (b OR c)
-	list, err := si.Query[Artist]().Where("name", "ILIKE", "%m%").WhereF(func(q *si.QueryBuilder[Artist]) *si.QueryBuilder[Artist] {
+	list, err := si.Query[Artist]().Where("name", "ILIKE", "%m%").WhereF(func(q *si.Q[Artist]) *si.Q[Artist] {
 		return q.Where("name", "ILIKE", "%Zi%").OrWhere("name", "ILIKE", "%Wi%")
 	}).Get(db)
 
@@ -186,7 +186,7 @@ func TestOrWhereF(t *testing.T) {
 	})
 
 	// WHERE a OR (b AND c)
-	list, err := si.Query[Artist]().Where("name", "ILIKE", "%knife%").OrWhereF(func(q *si.QueryBuilder[Artist]) *si.QueryBuilder[Artist] {
+	list, err := si.Query[Artist]().Where("name", "ILIKE", "%knife%").OrWhereF(func(q *si.Q[Artist]) *si.Q[Artist] {
 		return q.Where("name", "ILIKE", "%daft%").Where("name", "ILIKE", "%punk%")
 	}).Get(db)
 
@@ -426,8 +426,6 @@ func TestUnload(t *testing.T) {
 
 func TestJoin(t *testing.T) {
 
-	t.Skip("joins is not fully implemented yet.")
-
 	db := DB(t)
 	ids := Seed(db, []Artist{
 		{Name: "The Ark"},
@@ -440,8 +438,8 @@ func TestJoin(t *testing.T) {
 		{Name: "All 'N All", ArtistID: ids[2]},
 	})
 
-	albums, err := si.Query[Album]().JoinWIP("artists", func(q *si.QueryBuilder[Album]) *si.QueryBuilder[Album] {
-		return q.Where("albums.artist_id", "=", "artists.id")
+	albums, err := si.Query[Album]().Join(func(t Album) *si.JoinConf {
+		return t.Artist().Join(si.INNER)
 	}).Where("artists.name", "ILIKE", "%The%").Get(db)
 
 	assert.NoError(t, err)

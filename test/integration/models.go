@@ -30,7 +30,7 @@ func (c Contact) GetTable() string {
 }
 
 func (c Contact) Artist() *si.Relation[Contact, Artist] {
-	return si.BelongsTo[Contact, Artist](c, "artist", func(c *Contact) *si.RelationData[Artist] {
+	return si.BelongsTo[Contact, Artist](c, "ArtistID", "artist", func(c *Contact) *si.RelationData[Artist] {
 		return &c.artist
 	})
 }
@@ -53,13 +53,13 @@ func (a Artist) GetTable() string {
 }
 
 func (a Artist) Contact() *si.Relation[Artist, Contact] {
-	return si.HasOne[Artist, Contact](a, "contact", func(a *Artist) *si.RelationData[Contact] {
+	return si.HasOne[Artist, Contact](a, "ArtistID", "contact", func(a *Artist) *si.RelationData[Contact] {
 		return &a.contact
 	})
 }
 
 func (a Artist) Albums() *si.Relation[Artist, Album] {
-	return si.HasMany[Artist, Album](a, "albums", func(a *Artist) *si.RelationData[Album] {
+	return si.HasMany[Artist, Album](a, "ArtistID", "albums", func(a *Artist) *si.RelationData[Album] {
 		return &a.albums
 	})
 }
@@ -83,7 +83,7 @@ func (a Album) GetTable() string {
 }
 
 func (a Album) Artist() *si.Relation[Album, Artist] {
-	return si.BelongsTo[Album, Artist](a, "artist", func(a *Album) *si.RelationData[Artist] {
+	return si.BelongsTo[Album, Artist](a, "ArtistID", "artist", func(a *Album) *si.RelationData[Artist] {
 		return &a.artist
 	})
 }

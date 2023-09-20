@@ -8,6 +8,8 @@ github.com/derivatan/si v0.0.0-20230913180112-bbc5f10092f8 h1:OK7mqQC1fNCdS2GFi/
 github.com/derivatan/si v0.0.0-20230913180112-bbc5f10092f8/go.mod h1:UNWN1CIpTQ79NVcYOnQUGa+xFQN+IgYUs+UVPVLcn6s=
 github.com/derivatan/si v0.0.0-20230913211900-5a55d69c1edd h1:7wtdAXksztTNf/4IjmMufPAsN/7FqdDsHD/gfVjBWdI=
 github.com/derivatan/si v0.0.0-20230913211900-5a55d69c1edd/go.mod h1:UNWN1CIpTQ79NVcYOnQUGa+xFQN+IgYUs+UVPVLcn6s=
+github.com/derivatan/si v0.0.0-20230920145300-ce95d545783d h1:ngwyB7sbWezG9cjWBHw3bj+gzQZ9dseWRP8/ItO8oBs=
+github.com/derivatan/si v0.0.0-20230920145300-ce95d545783d/go.mod h1:UNWN1CIpTQ79NVcYOnQUGa+xFQN+IgYUs+UVPVLcn6s=
 github.com/gofrs/uuid v4.4.0+incompatible h1:3qXRTX8/NbyulANqlc0lchS1gqAVxRgsuW1YrTJupqA=
 github.com/gofrs/uuid v4.4.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
