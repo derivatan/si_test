@@ -47,7 +47,7 @@ func Seed[T si.Modeler](tx si.DB, list []T) []uuid.UUID {
 	for _, elem := range list {
 		err := si.Save[T](tx, &elem)
 		if err != nil {
-			panic(fmt.Errorf("Fialed to seed '%T': %w", elem, err))
+			panic(fmt.Errorf("failed to seed '%T': %w", elem, err))
 		}
 		result = append(result, *elem.GetModel().ID)
 	}
