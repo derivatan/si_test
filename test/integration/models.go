@@ -4,7 +4,7 @@ package integration
 
 import (
 	"github.com/derivatan/si"
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"time"
 )
 
