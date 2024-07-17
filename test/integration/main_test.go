@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/derivatan/si"
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"testing"
 )
 
