@@ -8,7 +8,8 @@ CREATE TABLE artists
     updated_at TIMESTAMP NULL,
     deleted_at TIMESTAMP NULL,
 
-    name       TEXT
+    name       TEXT,
+    nickname   TEXT
 );
 
 CREATE TABLE contacts
