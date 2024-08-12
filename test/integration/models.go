@@ -38,7 +38,8 @@ func (c Contact) Artist() *si.Relation[Contact, Artist] {
 type Artist struct {
 	si.Model
 
-	Name string
+	Name     string
+	Nickname string
 
 	contact si.RelationData[Contact]
 	albums  si.RelationData[Album]

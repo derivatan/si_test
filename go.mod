@@ -1,6 +1,6 @@
 module github.com/derivatan/si_test
 
-go 1.20
+go 1.21
 
 require (
 	github.com/derivatan/si v0.0.0-20240717202040-3598693036e4

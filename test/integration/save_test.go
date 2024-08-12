@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func TestCreate(t *testing.T) {
+func TestSaveToCreate(t *testing.T) {
 	db := DB(t)
 	ids := Seed(db, []Artist{
 		{Name: "Roger Waters"},
@@ -35,7 +35,7 @@ func TestCreate(t *testing.T) {
 	assert.Equal(t, c.ArtistID, c2.ArtistID)
 }
 
-func TestUpdate(t *testing.T) {
+func TestSaveToUpdate(t *testing.T) {
 	db := DB(t)
 	ids := Seed(db, []Artist{
 		{Name: "Timbuktu"},
@@ -75,4 +75,37 @@ func TestUpdate(t *testing.T) {
 	assert.Equal(t, radio, c2.RadioFrequency)
 	assert.Equal(t, lastCall, c2.LastCall.Local())
 	assert.Equal(t, onSM, c2.OnSocialMedia)
+}
+
+func TestUpdateWhenNotExists(t *testing.T) {
+	db := DB(t)
+
+	err := si.Update[Artist](db, &Artist{
+		Name:     "Whatever",
+		Nickname: "Who cares",
+	}, []string{"name", "nickname"})
+
+	assert.Error(t, err)
+	assert.Equal(t, si.ResourceNotFoundError, err)
+}
+
+func TestUpdate(t *testing.T) {
+	db := DB(t)
+	artist := &Artist{
+		Name:     "Aleks Christensen",
+		Nickname: "Alex",
+	}
+	err := si.Save[Artist](db, artist)
+
+	artist.Name = "Alex Christensen"
+	artist.Nickname = "Aleks" // This should not update.
+	err2 := si.Update[Artist](db, artist, []string{"name"})
+
+	result, err3 := si.Query[Artist]().First(db)
+
+	assert.NoError(t, err)
+	assert.NoError(t, err2)
+	assert.NoError(t, err3)
+	assert.Equal(t, "Alex", result.Nickname)
+	assert.Equal(t, "Alex Christensen", result.Name)
 }
