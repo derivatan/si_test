@@ -4,6 +4,7 @@ package integration
 
 import (
 	"github.com/derivatan/si"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -108,4 +109,22 @@ func TestUpdate(t *testing.T) {
 	assert.NoError(t, err3)
 	assert.Equal(t, "Alex", result.Nickname)
 	assert.Equal(t, "Alex Christensen", result.Name)
+}
+
+func TestInsertWithID(t *testing.T) {
+	db := DB(t)
+	artistID := uuid.MustParse("00001111-2222-3333-4444-555566667777")
+	artist := &Artist{
+		Model: si.Model{
+			ID: &artistID,
+		},
+		Name:     "System of a Down",
+		Nickname: "soad",
+	}
+	err := si.Insert[Artist](db, artist)
+	result, err2 := si.Query[Artist]().First(db)
+
+	assert.NoError(t, err)
+	assert.NoError(t, err2)
+	assert.Equal(t, artistID, *result.Model.ID)
 }
