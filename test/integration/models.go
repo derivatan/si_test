@@ -3,9 +3,10 @@
 package integration
 
 import (
+	"time"
+
 	"github.com/derivatan/si"
 	"github.com/google/uuid"
-	"time"
 )
 
 type Contact struct {
