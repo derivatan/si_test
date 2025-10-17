@@ -3,8 +3,9 @@
 package integration
 
 import (
-	"github.com/derivatan/si"
 	"testing"
+
+	"github.com/derivatan/si"
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
@@ -79,7 +80,7 @@ func TestWithWrongNumberOfResults(t *testing.T) {
 
 	assert.Nil(t, artist)
 	assert.Error(t, err)
-	assert.Equal(t, si.ResourceNotFoundError, err)
+	assert.ErrorIs(t, err, si.ResourceNotFoundError{})
 }
 
 // Builder functions

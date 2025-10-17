@@ -5,9 +5,10 @@ package integration
 import (
 	"database/sql"
 	"fmt"
+	"testing"
+
 	"github.com/derivatan/si"
 	"github.com/google/uuid"
-	"testing"
 )
 
 var (
@@ -27,7 +28,8 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
-// DB returns a transaction, that will rollback when the test is finished.
+// DB returns a transaction that will rolled back when the test is finished.
+// This is an easy way to reset the database between tests, but will not work if testing transactions.
 func DB(t *testing.T) si.DB {
 	tx, err := db.Begin()
 	if err != nil {

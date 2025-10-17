@@ -3,11 +3,12 @@
 package integration
 
 import (
+	"testing"
+	"time"
+
 	"github.com/derivatan/si"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func TestSaveToCreate(t *testing.T) {
@@ -87,7 +88,7 @@ func TestUpdateWhenNotExists(t *testing.T) {
 	}, []string{"name", "nickname"})
 
 	assert.Error(t, err)
-	assert.Equal(t, si.ResourceNotFoundError, err)
+	assert.ErrorIs(t, err, si.ResourceNotFoundError{})
 }
 
 func TestUpdate(t *testing.T) {
@@ -127,4 +128,43 @@ func TestInsertWithID(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, err2)
 	assert.Equal(t, artistID, *result.Model.ID)
+}
+
+func TestDelete(t *testing.T) {
+	si.UseDeletedAt(true)
+	db := DB(t)
+	ids := Seed(db, []Artist{
+		{Name: "Heilung"},
+		{Name: "Wardruna"},
+	})
+
+	err := si.Delete[Artist](db, ids[0])
+	artists, err2 := si.Query[Artist]().Get(db)
+	artistsWithDeleted, err3 := si.Query[Artist]().WithDeleted().Get(db)
+	assert.NoError(t, err)
+	assert.NoError(t, err2)
+	assert.NoError(t, err3)
+	assert.Len(t, artists, 1)
+	assert.Len(t, artistsWithDeleted, 2)
+	assert.Equal(t, &ids[1], artists[0].ID)
+}
+
+func TestDeleteHard(t *testing.T) {
+	si.UseDeletedAt(true)
+	db := DB(t)
+	ids := Seed(db, []Artist{
+		{Name: "Nirvana"},
+		{Name: "Tool"},
+	})
+
+	err := si.DeleteHard[Artist](db, ids[1])
+	artists, err2 := si.Query[Artist]().Get(db)
+	artistsWithDeleted, err3 := si.Query[Artist]().WithDeleted().Get(db)
+	assert.NoError(t, err)
+	assert.NoError(t, err2)
+	assert.NoError(t, err3)
+	assert.Len(t, artists, 1)
+	assert.Len(t, artistsWithDeleted, 1)
+	assert.Equal(t, &ids[0], artists[0].ID)
+	assert.Equal(t, &ids[0], artistsWithDeleted[0].ID)
 }
