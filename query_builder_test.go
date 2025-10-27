@@ -4,6 +4,7 @@ package integration
 
 import (
 	"testing"
+	"time"
 
 	"github.com/derivatan/si"
 
@@ -426,7 +427,6 @@ func TestUnload(t *testing.T) {
 }
 
 func TestJoin(t *testing.T) {
-
 	db := DB(t)
 	ids := Seed(db, []Artist{
 		{Name: "The Ark"},
@@ -445,4 +445,48 @@ func TestJoin(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, albums, 2)
+}
+
+func TestWithDeleted(t *testing.T) {
+	db := DB(t)
+	si.UseDeletedAt(true)
+	name := "Jean-Michel Jarre"
+	now := time.Now()
+	Seed(db, []Artist{
+		{Name: "Kate Bush", Model: si.Model{DeletedAt: &now}},
+		{Name: name},
+	})
+	list, err1 := si.Query[Artist]().Get(db)
+	list2, err2 := si.Query[Artist]().WithDeleted().Get(db)
+
+	assert.NoError(t, err1)
+	assert.NoError(t, err2)
+	assert.Len(t, list, 1)
+	assert.Equal(t, name, list[0].Name)
+	assert.Len(t, list2, 2)
+}
+
+func TestJoinWithDeleted(t *testing.T) {
+	db := DB(t)
+	si.UseDeletedAt(true)
+	now := time.Now()
+	name := "Thousand Sun Sky"
+	ids := Seed(db, []Artist{
+		{Name: "Infected Mushroom"},
+		{Name: name},
+	})
+	Seed(db, []Album{
+		{Name: "B.P.Empire", ArtistID: ids[0]},
+		{Name: "Head of NASA and the 2 Amish Boys", ArtistID: ids[0], Model: si.Model{DeletedAt: &now}},
+		{Name: "The Aurora Complex", ArtistID: ids[1]},
+		{Name: "Passengers", ArtistID: ids[1]},
+	})
+
+	list, err := si.Query[Artist]().Join(func(t Artist) *si.JoinConf {
+		return t.Albums().Join(si.INNER)
+	}).Where("albums.name", "ILIKE", "%the%").Get(db)
+
+	assert.NoError(t, err)
+	assert.Len(t, list, 1)
+	assert.Equal(t, name, list[0].Name)
 }
