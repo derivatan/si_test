@@ -6,4 +6,10 @@ The tests are put here, in its own repository, because I don't want the library 
 
 ## Running the tests.
 
+First time:
+
+`make init`
+
+And then to run the tests:
+
 `make integration`
