@@ -422,8 +422,28 @@ func TestRelationWithHasMany(t *testing.T) {
 	assert.Len(t, albums, 2)
 }
 
-func TestUnload(t *testing.T) {
-	t.Skip("implement this")
+func TestLoaded(t *testing.T) {
+	db := DB(t)
+	ids := Seed(db, []Artist{
+		{Name: "Vivaldi"},
+	})
+	albumName := "Le quattro stagioni"
+	Seed(db, []Album{
+		{Name: albumName, ArtistID: ids[0]},
+	})
+
+	artist1, err1 := si.Query[Artist]().First(db)
+	artist2, err2 := si.Query[Artist]().With(func(m Artist, r []Artist) error {
+		return m.Albums().Execute(db, r)
+	}).First(db)
+
+	album := artist2.Albums().MustFirst(nil)
+
+	assert.NoError(t, err1)
+	assert.NoError(t, err2)
+	assert.False(t, artist1.Albums().Loaded())
+	assert.True(t, artist2.Albums().Loaded())
+	assert.Equal(t, album.Name, albumName)
 }
 
 func TestJoin(t *testing.T) {
