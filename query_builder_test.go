@@ -41,6 +41,14 @@ func TestFirst(t *testing.T) {
 	assert.Equal(t, name, artist.Name)
 }
 
+func TestFirstWithNoResult(t *testing.T) {
+	db := DB(t)
+	result, err := si.Query[Artist]().First(db)
+
+	assert.NoError(t, err)
+	assert.Nil(t, result)
+}
+
 func TestFind(t *testing.T) {
 	db := DB(t)
 	name := "Portishead"
