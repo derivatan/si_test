@@ -454,7 +454,7 @@ func TestLoaded(t *testing.T) {
 	assert.Equal(t, album.Name, albumName)
 }
 
-func TestJoin(t *testing.T) {
+func TestJoinBelongsTo(t *testing.T) {
 	db := DB(t)
 	ids := Seed(db, []Artist{
 		{Name: "The Ark"},
@@ -473,6 +473,46 @@ func TestJoin(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, albums, 2)
+}
+
+func TestJoinHasOne(t *testing.T) {
+	db := DB(t)
+	ids := Seed(db, []Artist{
+		{Name: "Epic Mountain"},
+	})
+	Seed(db, []Contact{
+		{Email: "epic@mountain.com", Phone: 12421, ArtistID: ids[0]},
+	})
+
+	contact, err := si.Query[Contact]().Join(func(t Contact) *si.JoinConf {
+		return t.Artist().Join(si.INNER)
+	}).Where("artists.name", "=", "Epic Mountain").First(db)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "epic@mountain.com", contact.Email)
+}
+
+func TestJoinHasMany(t *testing.T) {
+	db := DB(t)
+	artistName := "Ugress"
+	ids := Seed(db, []Artist{
+		{Name: "Klangphonics"},
+		{Name: artistName},
+	})
+	Seed(db, []Album{
+		{Name: "Songs to Try", ArtistID: ids[0]},
+		{Name: "Luftslott", ArtistID: ids[1]},
+		{Name: "The Wrong Future", ArtistID: ids[1]},
+	})
+
+	artists, err := si.Query[Artist]().Join(func(t Artist) *si.JoinConf {
+		return t.Albums().Join(si.INNER)
+	}).Where("albums.name", "ILIKE", "%u%").Get(db)
+
+	assert.NoError(t, err)
+	assert.Len(t, artists, 2)
+	assert.Equal(t, artistName, artists[0].Name)
+	assert.Equal(t, artistName, artists[1].Name)
 }
 
 func TestWithDeleted(t *testing.T) {
