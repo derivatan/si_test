@@ -3,7 +3,7 @@ module github.com/derivatan/si_test
 go 1.21
 
 require (
-	github.com/derivatan/si v0.0.0-20251017204737-f98c86d306c3
+	github.com/derivatan/si v0.0.0-20251017204737-3d096c248b39
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
 	github.com/stretchr/testify v1.11.1
