@@ -168,3 +168,20 @@ func TestDeleteHard(t *testing.T) {
 	assert.Equal(t, &ids[0], artists[0].ID)
 	assert.Equal(t, &ids[0], artistsWithDeleted[0].ID)
 }
+
+func TestSet(t *testing.T) {
+	db := DB(t)
+	Seed(db, []Artist{
+		{Name: "Garmarna"},
+		{Name: "Andrey Vinogradov"},
+		{Name: "Eivør"},
+	})
+
+	value := "Random"
+	err := si.Set[Artist]().Set("nickname", value).Where("name", "LIKE", "%i%").Do(db)
+	artists, err2 := si.Query[Artist]().Where("nickname", "=", value).Get(db)
+
+	assert.NoError(t, err)
+	assert.NoError(t, err2)
+	assert.Len(t, artists, 2)
+}
