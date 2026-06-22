@@ -8,6 +8,7 @@ import (
 
 	"github.com/derivatan/si"
 
+	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
@@ -452,6 +453,47 @@ func TestLoaded(t *testing.T) {
 	assert.False(t, artist1.Albums().Loaded())
 	assert.True(t, artist2.Albums().Loaded())
 	assert.Equal(t, album.Name, albumName)
+}
+
+func TestRelationFirstLoadedEmpty(t *testing.T) {
+	db := DB(t)
+	Seed(db, []Artist{
+		{Name: "Enya"},
+	})
+
+	artist, err := si.Query[Artist]().With(func(m Artist, r []Artist) error {
+		return m.Albums().Execute(db, r)
+	}).First(db)
+	album, albErr := artist.Albums().First(nil)
+
+	assert.NoError(t, err)
+	assert.NoError(t, albErr)
+	assert.True(t, artist.Albums().Loaded())
+	assert.Nil(t, album)
+}
+
+func TestRelationFindLoaded(t *testing.T) {
+	db := DB(t)
+	ids := Seed(db, []Artist{
+		{Name: "Pink Floyd"},
+	})
+	albumIDs := Seed(db, []Album{
+		{Name: "The Wall", ArtistID: ids[0]},
+		{Name: "Animals", ArtistID: ids[0]},
+	})
+
+	artist, err := si.Query[Artist]().With(func(m Artist, r []Artist) error {
+		return m.Albums().Execute(db, r)
+	}).First(db)
+	found, findErr := artist.Albums().Find(nil, albumIDs[1])
+	_, missingErr := artist.Albums().Find(nil, uuid.New())
+
+	assert.NoError(t, err)
+	assert.NoError(t, findErr)
+	assert.NotNil(t, found)
+	assert.Equal(t, "Animals", found.Name)
+	assert.Error(t, missingErr)
+	assert.ErrorIs(t, missingErr, si.ResourceNotFoundError{})
 }
 
 func TestJoinBelongsTo(t *testing.T) {

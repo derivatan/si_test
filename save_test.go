@@ -185,3 +185,102 @@ func TestSet(t *testing.T) {
 	assert.NoError(t, err2)
 	assert.Len(t, artists, 2)
 }
+
+func TestSetMultipleColumns(t *testing.T) {
+	db := DB(t)
+	ids := Seed(db, []Artist{
+		{Name: "Opeth"},
+		{Name: "Katatonia"},
+	})
+
+	newName := "Renamed"
+	newNick := "Nick"
+	// Multiple SET columns plus a WHERE exercises the $N placeholder numbering:
+	// SET args must be bound before the WHERE arg.
+	err := si.Set[Artist]().
+		Set("name", newName).
+		Set("nickname", newNick).
+		Where("name", "=", "Opeth").
+		Do(db)
+
+	updated := si.Query[Artist]().MustFind(db, ids[0])
+	untouched := si.Query[Artist]().MustFind(db, ids[1])
+
+	assert.NoError(t, err)
+	assert.Equal(t, newName, updated.Name)
+	assert.Equal(t, newNick, updated.Nickname)
+	assert.Equal(t, "Katatonia", untouched.Name)
+	assert.Equal(t, "", untouched.Nickname)
+}
+
+func TestSetOrWhere(t *testing.T) {
+	db := DB(t)
+	Seed(db, []Artist{
+		{Name: "Gojira"},
+		{Name: "Mastodon"},
+		{Name: "Meshuggah"},
+	})
+
+	value := "Tagged"
+	err := si.Set[Artist]().
+		Set("nickname", value).
+		Where("name", "=", "Gojira").
+		OrWhere("name", "=", "Mastodon").
+		Do(db)
+
+	tagged, err2 := si.Query[Artist]().Where("nickname", "=", value).OrderBy("name", true).Get(db)
+
+	assert.NoError(t, err)
+	assert.NoError(t, err2)
+	assert.Len(t, tagged, 2)
+	assert.Equal(t, "Gojira", tagged[0].Name)
+	assert.Equal(t, "Mastodon", tagged[1].Name)
+}
+
+func TestCreatedAtSetOnSave(t *testing.T) {
+	db := DB(t)
+	before := time.Now()
+	artist := &Artist{
+		Name: "Steely Dan",
+	}
+
+	err := si.Save(db, artist)
+	after := time.Now()
+
+	// Save stamps the timestamps on the passed struct via reflection.
+	assert.NoError(t, err)
+	assert.NotNil(t, artist.UpdatedAt)
+	assert.False(t, artist.CreatedAt.IsZero())
+	assert.WithinRange(t, artist.CreatedAt, before, after)
+
+	// The stored row carries the same CreatedAt.
+	stored := si.Query[Artist]().MustFind(db, *artist.ID)
+	assert.WithinDuration(t, artist.CreatedAt, stored.CreatedAt, time.Second)
+}
+
+func TestUpdatedAtChangedOnUpdate(t *testing.T) {
+	db := DB(t)
+	artist := &Artist{
+		Name: "Donald Fagen",
+	}
+	err := si.Save(db, artist)
+	assert.NoError(t, err)
+	originalCreatedAt := artist.CreatedAt
+	originalUpdatedAt := *artist.UpdatedAt
+
+	// Ensure the clock advances so the new UpdatedAt is strictly later.
+	time.Sleep(10 * time.Millisecond)
+
+	artist.Name = "The Nightfly"
+	err2 := si.Save(db, artist)
+
+	assert.NoError(t, err2)
+	assert.NotNil(t, artist.UpdatedAt)
+	// UpdatedAt advances, CreatedAt is left untouched on update.
+	assert.True(t, artist.UpdatedAt.After(originalUpdatedAt))
+	assert.Equal(t, originalCreatedAt, artist.CreatedAt)
+
+	stored := si.Query[Artist]().MustFind(db, *artist.ID)
+	assert.True(t, stored.UpdatedAt.After(originalUpdatedAt))
+	assert.WithinDuration(t, originalCreatedAt, stored.CreatedAt, time.Second)
+}
